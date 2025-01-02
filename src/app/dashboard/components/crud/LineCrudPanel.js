@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getBearerToken } from "@/utils/auth";
 import { Edit2, Trash2, Plus } from "lucide-react";
 
 export default function LineCrudPanel() {
@@ -46,12 +47,13 @@ export default function LineCrudPanel() {
 
   const fetchLines = async () => {
     try {
+      const token = getBearerToken();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -76,6 +78,8 @@ const handleCreateOrUpdate = async (e) => {
       line_value: parseFloat(formData.line_value), // Ensure line_value is a float
     };
 
+    const token = getBearerToken();
+
     console.log("URL", url);
     console.log("Method", method);
 
@@ -83,7 +87,7 @@ const handleCreateOrUpdate = async (e) => {
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -110,12 +114,14 @@ const handleCreateOrUpdate = async (e) => {
 
   const handleDelete = async (lineId) => {
     try {
+      const token = getBearerToken();
+
       await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines/${lineId}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

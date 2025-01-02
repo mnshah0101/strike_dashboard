@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { ErrorAlert } from "./error/ErrorAlert";
 import RiskAnalysisChart from "./RiskAnalysis";
-
+import { getBearerToken } from "@/utils/auth";
 export default function LineStatsDashboard() {
   const [lineStats, setLineStats] = useState({});
   const [lines, setLines] = useState([]);
@@ -25,12 +25,13 @@ export default function LineStatsDashboard() {
   }, []);
 
   const fetchLines = async () => {
+    const token = getBearerToken();
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

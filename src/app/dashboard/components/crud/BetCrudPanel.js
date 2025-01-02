@@ -34,6 +34,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Edit2, Trash2, Plus } from "lucide-react";
+import { getBearerToken } from "@/utils/auth";
 
 export default function BetCrudPanel() {
   const [bets, setBets] = useState([]);
@@ -58,6 +59,7 @@ export default function BetCrudPanel() {
   }, []);
 
   const fetchBets = async () => {
+    const token = getBearerToken();
     try {
       setIsLoading(true);
       setError(null);
@@ -66,7 +68,7 @@ export default function BetCrudPanel() {
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bets`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -160,11 +162,13 @@ export default function BetCrudPanel() {
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bets/${selectedBetId}`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bets`;
 
+      const token = getBearerToken();
+
       const response = await fetch(url, {
         method: selectedBetId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
@@ -190,12 +194,14 @@ export default function BetCrudPanel() {
     try {
       setError(null);
 
+      const token = getBearerToken();
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/bets/${betId}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

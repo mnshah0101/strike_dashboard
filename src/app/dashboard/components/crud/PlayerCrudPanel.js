@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Edit2, Trash2, Plus } from "lucide-react";
+import { getBearerToken } from "@/utils/auth";
 
 export default function PlayerCrudPanel() {
   const [players, setPlayers] = useState([]);
@@ -54,12 +55,13 @@ export default function PlayerCrudPanel() {
 
   const fetchPlayers = async () => {
     try {
+      const token = getBearerToken();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -81,11 +83,12 @@ export default function PlayerCrudPanel() {
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players/${selectedPlayerId}`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players`;
 
+      const token = getBearerToken();
       const res = await fetch(url, {
         method: selectedPlayerId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
@@ -119,12 +122,13 @@ export default function PlayerCrudPanel() {
 
   const handleDelete = async (playerId) => {
     try {
+      const token = getBearerToken();
       await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players/${playerId}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
           credentials: "include",
         }

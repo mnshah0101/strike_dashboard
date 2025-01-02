@@ -31,8 +31,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Edit2, Trash2, Plus } from "lucide-react";
-import { Label } from "@/components/ui/label";
+  import { Label } from "@/components/ui/label";
 import { ErrorAlert } from "../error/ErrorAlert";
+import { getBearerToken } from "@/utils/auth";
 /**
  * Example Betting Events Dashboard Component
  */
@@ -73,13 +74,15 @@ export default function BettingEventsDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
+      const token = getBearerToken();
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/betting-events`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -149,11 +152,13 @@ export default function BettingEventsDashboard() {
 
       const method = selectedEventId ? "PUT" : "POST";
 
+      const token = getBearerToken();
+
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
         credentials: "include",
@@ -204,12 +209,13 @@ export default function BettingEventsDashboard() {
    */
   const handleDelete = async (eventId) => {
     try {
+      const token = getBearerToken();
       await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/betting-events/${eventId}`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
