@@ -27,6 +27,15 @@ export default function RiskAnalysisChart({ lineStats }) {
   const [distributionData, setDistributionData] = useState([]);
   const [expectedValueData, setExpectedValueData] = useState([]);
   const [lineHistoryData, setLineHistoryData] = useState([]);
+  const [useHypothetical, setUseHypothetical] = useState(false);
+  const [hypotheticalOver, setHypotheticalOver] = useState(0);
+  const [hypotheticalUnder, setHypotheticalUnder] = useState(0);
+  const [warnings, setWarnings] = useState({
+    maxLoss: 0,
+    imbalanceRatio: 0,
+    shouldAdjustLine: false,
+    suggestedAdjustment: 0
+  });
 
   useEffect(() => {
     if (lineStats?.current_line) {
@@ -37,12 +46,25 @@ export default function RiskAnalysisChart({ lineStats }) {
       calculateProfitLoss(selectedLine);
       calculateNormalDistribution(selectedLine);
       calculateExpectedValue(selectedLine);
+      calculateWarnings(selectedLine);
     }
 
     if (lineStats?.line_history?.length > 0) {
       calculateLineHistory();
     }
-  }, [premium, lineStats, standardDev, selectedHistoryIndex]);
+  }, [premium, lineStats, standardDev, selectedHistoryIndex, useHypothetical, hypotheticalOver, hypotheticalUnder]);
+
+  useEffect(() => {
+    if (useHypothetical && lineStats?.current_line) {
+      const totalOver = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_over_volume) || 0), 0) + (Number(lineStats.current_line.total_over_volume) || 0);
+      const totalUnder = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_under_volume) || 0), 0) + (Number(lineStats.current_line.total_under_volume) || 0);
+      
+      setHypotheticalOver(totalOver);
+      setHypotheticalUnder(totalUnder);
+    }
+  }, [useHypothetical, lineStats]);
 
   const calculateProfitLoss = (selectedLine) => {
     if (!selectedLine) return;
@@ -51,10 +73,17 @@ export default function RiskAnalysisChart({ lineStats }) {
     const currentValue = Number(selectedLine.line_value) || 0;
     const range = 10;
 
-    const totalOverVolume = lineStats.line_history.reduce((sum, line) => 
-      sum + (Number(line.total_over_volume) || 0), 0) + (Number(lineStats.current_line.total_over_volume) || 0);
-    const totalUnderVolume = lineStats.line_history.reduce((sum, line) => 
-      sum + (Number(line.total_under_volume) || 0), 0) + (Number(lineStats.current_line.total_under_volume) || 0);
+    let totalOverVolume, totalUnderVolume;
+    
+    if (useHypothetical) {
+      totalOverVolume = hypotheticalOver;
+      totalUnderVolume = hypotheticalUnder;
+    } else {
+      totalOverVolume = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_over_volume) || 0), 0) + (Number(lineStats.current_line.total_over_volume) || 0);
+      totalUnderVolume = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_under_volume) || 0), 0) + (Number(lineStats.current_line.total_under_volume) || 0);
+    }
 
     for (let i = -range; i <= range; i++) {
       const outcome = currentValue + i;
@@ -169,6 +198,42 @@ export default function RiskAnalysisChart({ lineStats }) {
     }
   };
 
+  const calculateWarnings = (selectedLine) => {
+    if (!selectedLine) return;
+
+    const currentValue = Number(selectedLine.line_value) || 0;
+    let overVolume, underVolume;
+    
+    if (useHypothetical) {
+      overVolume = hypotheticalOver;
+      underVolume = hypotheticalUnder;
+    } else {
+      overVolume = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_over_volume) || 0), 0) + (Number(lineStats.current_line.total_over_volume) || 0);
+      underVolume = lineStats.line_history.reduce((sum, line) => 
+        sum + (Number(line.total_under_volume) || 0), 0) + (Number(lineStats.current_line.total_under_volume) || 0);
+    }
+
+    const maxLoss = Math.max(overVolume, underVolume);
+    
+    const imbalanceRatio = Math.max(overVolume, underVolume) / Math.min(overVolume, underVolume);
+    
+    const shouldAdjustLine = imbalanceRatio > 1.5;
+    
+    let suggestedAdjustment = 0;
+    if (shouldAdjustLine) {
+      const dominantSide = overVolume > underVolume ? 'over' : 'under';
+      suggestedAdjustment = dominantSide === 'over' ? 0.5 : -0.5;
+    }
+
+    setWarnings({
+      maxLoss,
+      imbalanceRatio,
+      shouldAdjustLine,
+      suggestedAdjustment
+    });
+  };
+
   return (
     <Card className="w-full mt-4">
       <CardHeader>
@@ -245,6 +310,79 @@ export default function RiskAnalysisChart({ lineStats }) {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="checkbox"
+              id="useHypothetical"
+              checked={useHypothetical}
+              onChange={(e) => setUseHypothetical(e.target.checked)}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="useHypothetical">Use Hypothetical Volumes</Label>
+          </div>
+          
+          {useHypothetical && (
+            <div className="flex gap-4">
+              <div>
+                <Label htmlFor="hypotheticalOver">Hypothetical Over Volume ($)</Label>
+                <Input
+                  id="hypotheticalOver"
+                  type="number"
+                  value={hypotheticalOver}
+                  onChange={(e) => setHypotheticalOver(Number(e.target.value) || 0)}
+                  className="w-48"
+                />
+              </div>
+              <div>
+                <Label htmlFor="hypotheticalUnder">Hypothetical Under Volume ($)</Label>
+                <Input
+                  id="hypotheticalUnder"
+                  type="number"
+                  value={hypotheticalUnder}
+                  onChange={(e) => setHypotheticalUnder(Number(e.target.value) || 0)}
+                  className="w-48"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-6 p-4 rounded-lg border">
+          <h3 className="font-semibold mb-2">Risk Warnings</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Maximum Potential Loss:</span>
+                <span className={`${warnings.maxLoss > 10000 ? 'text-red-600 font-bold' : ''}`}>
+                  ${warnings.maxLoss.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Volume Imbalance Ratio:</span>
+                <span className={`${warnings.imbalanceRatio > 1.5 ? 'text-red-600 font-bold' : ''}`}>
+                  {warnings.imbalanceRatio.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            
+            {warnings.shouldAdjustLine && (
+              <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-semibold">Suggested Line Adjustment</span>
+                </div>
+                <p className="mt-1">
+                  Consider moving the line {warnings.suggestedAdjustment > 0 ? 'up' : 'down'} by{' '}
+                  {Math.abs(warnings.suggestedAdjustment)} points to balance exposure.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
