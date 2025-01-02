@@ -34,11 +34,8 @@ export default function LineCrudPanel() {
   const [lines, setLines] = useState([]);
   const [formData, setFormData] = useState({
     line_value: "",
-    player_id: "",
-    player_name: "",
-    stat_type: "",
-    premium: "",
     betting_event_id: "",
+    is_most_recent: false,
   });
   const [selectedLineId, setSelectedLineId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -65,40 +62,48 @@ export default function LineCrudPanel() {
     }
   };
 
-  const handleCreateOrUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const url = selectedLineId
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines/${selectedLineId}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines`;
+const handleCreateOrUpdate = async (e) => {
+  e.preventDefault();
+  try {
+    const url = selectedLineId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines/${selectedLineId}`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines`;
 
-      const res = await fetch(url, {
-        method: selectedLineId ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
-        },
-        body: JSON.stringify(formData),
-      });
+    const method = selectedLineId ? "PUT" : "POST";
 
-      await res.json();
-      await fetchLines();
-      resetForm();
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to create/update line:", error);
-    }
-  };
+    const payload = {
+      ...formData,
+      line_value: parseFloat(formData.line_value), // Ensure line_value is a float
+    };
+
+    console.log("URL", url);
+    console.log("Method", method);
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    await res.json();
+    await fetchLines();
+    resetForm();
+    setIsDialogOpen(false);
+  } catch (error) {
+    console.error("Failed to create/update line:", error);
+  }
+};
+
 
   const handleEdit = (line) => {
     setSelectedLineId(line.line_id);
     setFormData({
       line_value: line.line_value || "",
-      player_id: line.player_id || "",
-      player_name: line.player_name || "",
-      stat_type: line.stat_type || "",
-      premium: line.premium || "",
       betting_event_id: line.betting_event_id || "",
+      is_most_recent: !!line.is_most_recent,
     });
     setIsDialogOpen(true);
   };
@@ -123,11 +128,8 @@ export default function LineCrudPanel() {
   const resetForm = () => {
     setFormData({
       line_value: "",
-      player_id: "",
-      player_name: "",
-      stat_type: "",
-      premium: "",
       betting_event_id: "",
+      is_most_recent: false,
     });
     setSelectedLineId(null);
   };
@@ -153,41 +155,13 @@ export default function LineCrudPanel() {
               <div className="grid gap-4 py-4">
                 <Input
                   placeholder="Line Value"
+                  type="number"
+                  step="any"
                   value={formData.line_value}
                   onChange={(e) =>
                     setFormData({ ...formData, line_value: e.target.value })
                   }
                   required
-                />
-                <Input
-                  placeholder="Player ID"
-                  value={formData.player_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, player_id: e.target.value })
-                  }
-                  required
-                />
-                <Input
-                  placeholder="Player Name"
-                  value={formData.player_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, player_name: e.target.value })
-                  }
-                />
-                <Input
-                  placeholder="Stat Type"
-                  value={formData.stat_type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stat_type: e.target.value })
-                  }
-                  required
-                />
-                <Input
-                  placeholder="Premium"
-                  value={formData.premium}
-                  onChange={(e) =>
-                    setFormData({ ...formData, premium: e.target.value })
-                  }
                 />
                 <Input
                   placeholder="Betting Event ID"
@@ -198,7 +172,22 @@ export default function LineCrudPanel() {
                       betting_event_id: e.target.value,
                     })
                   }
+                  required
                 />
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isMostRecent"
+                    checked={formData.is_most_recent}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        is_most_recent: e.target.checked,
+                      })
+                    }
+                  />
+                  <label htmlFor="isMostRecent">Is Most Recent?</label>
+                </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button
@@ -222,22 +211,22 @@ export default function LineCrudPanel() {
               <TableRow>
                 <TableHead>Line ID</TableHead>
                 <TableHead>Value</TableHead>
-                <TableHead>Player ID</TableHead>
-                <TableHead>Stat Type</TableHead>
-                <TableHead>Premium</TableHead>
-                <TableHead>Betting Event</TableHead>
+                <TableHead>Is Most Recent</TableHead>
+                <TableHead>Betting Event ID</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Updated At</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lines.map((l) => (
+              {lines && lines.length > 0 && lines.map((l) => (
                 <TableRow key={l.line_id}>
                   <TableCell>{l.line_id}</TableCell>
                   <TableCell>{l.line_value}</TableCell>
-                  <TableCell>{l.player_id}</TableCell>
-                  <TableCell>{l.stat_type}</TableCell>
-                  <TableCell>{l.premium}</TableCell>
+                  <TableCell>{l.is_most_recent ? "Yes" : "No"}</TableCell>
                   <TableCell>{l.betting_event_id}</TableCell>
+                  <TableCell>{l.created_at}</TableCell>
+                  <TableCell>{l.updated_at}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button

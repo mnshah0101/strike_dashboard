@@ -37,7 +37,13 @@ export default function PlayerCrudPanel() {
     name: "",
     position: "",
     team: "",
+    team_name: "",
+    opposing_team_abv: "",
     league_id: "",
+    image_url: "",
+    is_combo: false,
+    player_attributes: "",
+    relationships: "",
   });
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -100,7 +106,13 @@ export default function PlayerCrudPanel() {
       name: player.name,
       position: player.position,
       team: player.team,
+      team_name: player.team_name || "",
+      opposing_team_abv: player.opposing_team_abv || "",
       league_id: player.league_id || "",
+      image_url: player.image_url || "",
+      is_combo: player.is_combo || false,
+      player_attributes: JSON.stringify(player.player_attributes || {}),
+      relationships: JSON.stringify(player.relationships || {}),
     });
     setIsDialogOpen(true);
   };
@@ -129,7 +141,13 @@ export default function PlayerCrudPanel() {
       name: "",
       position: "",
       team: "",
+      team_name: "",
+      opposing_team_abv: "",
       league_id: "",
+      image_url: "",
+      is_combo: false,
+      player_attributes: "",
+      relationships: "",
     });
     setSelectedPlayerId(null);
   };
@@ -184,10 +202,62 @@ export default function PlayerCrudPanel() {
                   }
                 />
                 <Input
+                  placeholder="Team Name"
+                  value={formData.team_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, team_name: e.target.value })
+                  }
+                />
+                <Input
+                  placeholder="Opposing Team Abbreviation"
+                  value={formData.opposing_team_abv}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      opposing_team_abv: e.target.value,
+                    })
+                  }
+                />
+                <Input
                   placeholder="League ID"
                   value={formData.league_id}
                   onChange={(e) =>
                     setFormData({ ...formData, league_id: e.target.value })
+                  }
+                />
+                <Input
+                  placeholder="Image URL"
+                  value={formData.image_url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, image_url: e.target.value })
+                  }
+                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor="is_combo">Is Combo:</label>
+                  <input
+                    type="checkbox"
+                    id="is_combo"
+                    checked={formData.is_combo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, is_combo: e.target.checked })
+                    }
+                  />
+                </div>
+                <Input
+                  placeholder="Player Attributes (JSON)"
+                  value={formData.player_attributes}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      player_attributes: e.target.value,
+                    })
+                  }
+                />
+                <Input
+                  placeholder="Relationships (JSON)"
+                  value={formData.relationships}
+                  onChange={(e) =>
+                    setFormData({ ...formData, relationships: e.target.value })
                   }
                 />
               </div>
@@ -215,19 +285,29 @@ export default function PlayerCrudPanel() {
                 <TableHead>Name</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>Team</TableHead>
+                <TableHead>Team Name</TableHead>
+                <TableHead>Opposing Team</TableHead>
                 <TableHead>League</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Image</TableHead>
+                <TableHead>Is Combo</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {players.map((p) => (
+              {players && players.length > 0 && players.map((p) => (
                 <TableRow key={p.player_id}>
                   <TableCell>{p.player_id}</TableCell>
-                  <TableCell className="font-medium">{p.name}</TableCell>
+                  <TableCell>{p.name}</TableCell>
                   <TableCell>{p.position}</TableCell>
                   <TableCell>{p.team}</TableCell>
+                  <TableCell>{p.team_name}</TableCell>
+                  <TableCell>{p.opposing_team_abv}</TableCell>
                   <TableCell>{p.league_id}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
+                    <img src={p.image_url} alt={p.name} className="h-8 w-8" />
+                  </TableCell>
+                  <TableCell>{p.is_combo ? "Yes" : "No"}</TableCell>
+                  <TableCell>
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
