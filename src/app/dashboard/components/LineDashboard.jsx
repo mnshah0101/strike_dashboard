@@ -13,6 +13,7 @@ import {
 import { ErrorAlert } from "./error/ErrorAlert";
 import RiskAnalysisChart from "./RiskAnalysis";
 import { getBearerToken } from "@/utils/auth";
+import { handleApiError } from "@/utils/auth";
 export default function LineStatsDashboard() {
   const [lineStats, setLineStats] = useState({});
   const [lines, setLines] = useState([]);
@@ -58,6 +59,7 @@ export default function LineStatsDashboard() {
 
       setLineStats(statsMap);
     } catch (error) {
+      handleApiError(error);
       console.error("Failed to fetch line data:", error);
       setError(error.message);
     } finally {

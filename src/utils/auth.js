@@ -15,3 +15,8 @@ export function logout() {
     window.location.href = "/login";
   }
 }
+
+export function handleApiError(error) {
+  console.error("API Error:", error);
+  logout();
+}

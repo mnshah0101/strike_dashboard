@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Edit2, Trash2, Plus } from "lucide-react";
 import { getBearerToken } from "@/utils/auth";
+import { handleApiError } from "@/utils/auth";
 
 export default function PlayerCrudPanel() {
   const [players, setPlayers] = useState([]);
@@ -68,10 +69,14 @@ export default function PlayerCrudPanel() {
         }
       );
 
-      if (!res.ok) throw new Error("Network response was not ok");
+      if (!res.ok) {
+        handleApiError(res);
+        throw new Error("Network response was not ok");
+      }
       const data = await res.json();
       setPlayers(data);
     } catch (error) {
+      handleApiError(res);
       console.error("Failed to fetch players:", error);
     }
   };
@@ -90,6 +95,7 @@ export default function PlayerCrudPanel() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 

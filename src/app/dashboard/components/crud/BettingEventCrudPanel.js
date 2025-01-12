@@ -34,6 +34,7 @@ import { Edit2, Trash2, Plus } from "lucide-react";
   import { Label } from "@/components/ui/label";
 import { ErrorAlert } from "../error/ErrorAlert";
 import { getBearerToken } from "@/utils/auth";
+import { handleApiError } from "@/utils/auth";
 /**
  * Example Betting Events Dashboard Component
  */
@@ -84,24 +85,27 @@ export default function BettingEventsDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
 
       if (!res.ok) {
         const errorData = await res.json();
+        handleApiError(errorData);
         throw new Error(errorData.message || "Failed to fetch betting events");
       }
 
       const data = await res.json();
       
       if (!Array.isArray(data)) {
+        handleApiError(data);
         throw new Error("Invalid data format received from server");
       }
 
       setEvents(data);
     } catch (error) {
       console.error("Failed to fetch betting events:", error);
-      setError(error.message);
+      handleApiError(error);
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +221,7 @@ export default function BettingEventsDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
       await fetchEvents();

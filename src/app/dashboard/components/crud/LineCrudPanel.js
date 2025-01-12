@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getBearerToken } from "@/utils/auth";
 import { Edit2, Trash2, Plus } from "lucide-react";
+import { handleApiError } from "@/utils/auth";
 
 export default function LineCrudPanel() {
   const [lines, setLines] = useState([]);
@@ -55,11 +56,13 @@ export default function LineCrudPanel() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
       const data = await res.json();
       setLines(data);
     } catch (error) {
+      handleApiError(error);
       console.error("Failed to fetch lines:", error);
     }
   };
@@ -90,6 +93,7 @@ const handleCreateOrUpdate = async (e) => {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
+      credentials: "include",
     });
 
     await res.json();
@@ -123,6 +127,7 @@ const handleCreateOrUpdate = async (e) => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
       await fetchLines();

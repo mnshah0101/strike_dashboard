@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Edit2, Trash2, Plus } from "lucide-react";
 import { getBearerToken } from "@/utils/auth";
+import { handleApiError } from "@/utils/auth";
 
 export default function BetCrudPanel() {
   const [bets, setBets] = useState([]);
@@ -70,11 +71,13 @@ export default function BetCrudPanel() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
 
       if (!res.ok) {
         const errorData = await res.json();
+        handleApiError(errorData);
         throw new Error(errorData.message || "Failed to fetch bets");
       }
 
@@ -83,12 +86,14 @@ export default function BetCrudPanel() {
       
 
       if (!Array.isArray(data)) {
+        handleApiError(data);
         throw new Error("Invalid data format received from server");
       }
 
       setBets(data);
     } catch (error) {
       console.error("Failed to fetch bets:", error);
+      handleApiError(error);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -171,6 +176,7 @@ export default function BetCrudPanel() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
+        credentials: "include",
       });
 
       if (!response.ok) {

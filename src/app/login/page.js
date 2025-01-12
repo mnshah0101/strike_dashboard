@@ -28,7 +28,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      // First attempt login
+      const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,20 +37,34 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+      if (!loginResponse.ok) {
+        const errorData = await loginResponse.json();
+        throw new Error(errorData.message || "Invalid credentials");
       }
 
-      const data = await response.json();
+      const data = await loginResponse.json();
+      const token = data.token;
 
-      // Save the token
-      localStorage.setItem("bearerToken", data.token);
+      // Test the token with a simple API call
+      const testResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      // Redirect to dashboard
+      if (!testResponse.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      // If we get here, the token is valid
+      localStorage.setItem("bearerToken", token);
       router.push("/dashboard");
     } catch (err) {
-      setError(err.message || "Failed to login. Please try again.");
+      setError(err.message || "Invalid credentials");
+      localStorage.removeItem("bearerToken"); // Clear any existing token
     } finally {
       setIsLoading(false);
     }
@@ -59,9 +74,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Login
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
           {error && <ErrorAlert message={error} className="mb-4" />}
