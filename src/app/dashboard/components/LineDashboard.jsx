@@ -40,6 +40,17 @@ export default function LineStatsDashboard() {
       setLines(data);
 
       // Fetch stats for each line
+
+      if (!data) {
+        setError("No data found");
+        return;
+      }
+
+      if (data.length === 0) {
+        setError("No data found");
+        return;
+      }
+
       const statsPromises = data.map((line) =>
         fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines/${line.line_id}/stats`,
@@ -101,7 +112,7 @@ export default function LineStatsDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lines.map((line) => {
+                  {lines && lines.map((line) => {
                     const stats = lineStats[line.line_id]?.current_line;
                     return (
                       <TableRow

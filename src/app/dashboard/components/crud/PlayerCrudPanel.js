@@ -314,7 +314,11 @@ export default function PlayerCrudPanel() {
                   <TableCell>{p.opposing_team_abv}</TableCell>
                   <TableCell>{p.league_id}</TableCell>
                   <TableCell>
-                    <img src={p.image_url} alt={p.name} className="h-8 w-8" />
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="h-8 w-8" />
+                    ) : (
+                      <span className="text-gray-400">No image</span>
+                    )}
                   </TableCell>
                   <TableCell>{p.is_combo ? "Yes" : "No"}</TableCell>
                   <TableCell>
