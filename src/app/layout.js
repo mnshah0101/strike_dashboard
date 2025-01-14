@@ -1,10 +1,7 @@
-'use client';
-
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MainNav } from "@/components/ui/MainNav";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { Providers } from "@/components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,19 +13,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
+export const metadata = {
+  title: "Strike Dashboard",
+  description: "A dashboard for managing betting lines and risk analysis",
+  keywords: ["betting", "dashboard", "risk analysis", "sports betting"],
+};
 
 export default function RootLayout({ children }) {
-  // Create a client
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <QueryClientProvider client={queryClient}>
+        <Providers>
           <MainNav />
           {children}
-        </QueryClientProvider>
+        </Providers>
       </body>
     </html>
   );
