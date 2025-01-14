@@ -1,22 +1,11 @@
 'use client'
+
 import { Button } from "@/components/ui/button";
-import { logout, isAuthenticated } from "@/utils/auth";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export function MainNav() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setAuthenticated(isAuthenticated());
-    setMounted(true);
-  }, []);
-
-  // Don't render anything until after hydration
-  if (!mounted) {
-    return null;
-  }
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <div className="border-b">
@@ -24,10 +13,11 @@ export function MainNav() {
         <div className="font-semibold">Strike Dashboard</div>
 
         <div className="flex items-center gap-2">
-          {authenticated ? (
+          {isAuthenticated ? (
             <>
               <Link className="hover:text-blue-500" href="/dashboard">Risk</Link>
               <Link className="hover:text-blue-500" href="/dashboard/crud">CRUD</Link>
+              <Button onClick={logout} variant="ghost">Logout</Button>
             </>
           ) : (
             <>
@@ -36,16 +26,6 @@ export function MainNav() {
             </>
           )}
         </div>
-
-        {authenticated && (
-          <Button
-            variant="ghost"
-            onClick={logout}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            Logout
-          </Button>
-        )}
       </div>
     </div>
   );

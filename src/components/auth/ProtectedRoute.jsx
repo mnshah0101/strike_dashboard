@@ -1,33 +1,29 @@
 'use client'
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/utils/auth";
+
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function ProtectedRoute({ children }) {
+  const { isAuthenticated, isAuthChecking } = useAuth();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if (!isAuthenticated()) {
+    if (!isAuthChecking && !isAuthenticated) {
       router.push('/login');
     }
-  }, [router]);
+  }, [isAuthenticated, isAuthChecking, router]);
 
-  // Don't render anything until after hydration
-  if (!mounted) {
-    return null;
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
   }
 
-  // After hydration, show loading state if not authenticated
-  if (!isAuthenticated()) {
-    return (
-      <main className="p-4">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-        </div>
-      </main>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
   return children;

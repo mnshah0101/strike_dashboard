@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,64 +10,11 @@ import { ErrorAlert } from "../dashboard/components/error/ErrorAlert";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const { login, loginError, isLoggingIn } = useAuth();
 
-  // Check if already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("bearerToken");
-    if (token) {
-      router.push("/dashboard");
-    }
-  }, [router]);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      // First attempt login
-      const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!loginResponse.ok) {
-        const errorData = await loginResponse.json();
-        throw new Error(errorData.message || "Invalid credentials");
-      }
-
-      const data = await loginResponse.json();
-      const token = data.token;
-
-      // Test the token with a simple API call
-      const testResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/players`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!testResponse.ok) {
-        throw new Error("Invalid credentials");
-      }
-
-      // If we get here, the token is valid
-      localStorage.setItem("bearerToken", token);
-      router.push("/dashboard");
-    } catch (err) {
-      setError(err.message || "Invalid credentials");
-      localStorage.removeItem("bearerToken"); // Clear any existing token
-    } finally {
-      setIsLoading(false);
-    }
+    login({ email, password });
   };
 
   return (
@@ -77,7 +24,12 @@ export default function LoginPage() {
           <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          {error && <ErrorAlert message={error} className="mb-4" />}
+          {loginError && (
+            <ErrorAlert 
+              message={loginError.message || "Login failed"} 
+              className="mb-4" 
+            />
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -91,6 +43,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email"
+                disabled={isLoggingIn}
               />
             </div>
 
@@ -105,11 +58,16 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
+                disabled={isLoggingIn}
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoggingIn}
+            >
+              {isLoggingIn ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

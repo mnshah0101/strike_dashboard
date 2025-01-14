@@ -73,26 +73,25 @@ export default function RiskAnalysisChart({ lineStats }) {
     const currentValue = Number(selectedLine.line_value) || 0;
     const range = 10;
 
-    let totalOverVolume, totalUnderVolume;
-    
-    if (useHypothetical) {
+    // Calculate total volumes including history
+    let totalOverVolume = Number(selectedLine.total_over_volume) || 0;
+    let totalUnderVolume = Number(selectedLine.total_under_volume) || 0;
+
+    if (!useHypothetical && lineStats.line_history) {
+      lineStats.line_history.forEach(history => {
+        totalOverVolume += Number(history.total_over_volume) || 0;
+        totalUnderVolume += Number(history.total_under_volume) || 0;
+      });
+    } else if (useHypothetical) {
       totalOverVolume = hypotheticalOver;
       totalUnderVolume = hypotheticalUnder;
-    } else {
-      totalOverVolume = lineStats.line_history.reduce((sum, line) => 
-        sum + (Number(line.total_over_volume) || 0), 0) + (Number(lineStats.current_line.total_over_volume) || 0);
-      totalUnderVolume = lineStats.line_history.reduce((sum, line) => 
-        sum + (Number(line.total_under_volume) || 0), 0) + (Number(lineStats.current_line.total_under_volume) || 0);
     }
 
     for (let i = -range; i <= range; i++) {
       const outcome = currentValue + i;
-      const overProfit = calculateProfit("over", outcome);
-      const underProfit = calculateProfit("under", outcome);
-      const totalPremium =
-        (Number(selectedLine.over_bet_count) +
-          Number(selectedLine.under_bet_count)) *
-        premium;
+      const overProfit = outcome > currentValue ? -totalOverVolume : totalOverVolume;
+      const underProfit = outcome < currentValue ? -totalUnderVolume : totalUnderVolume;
+      const totalPremium = (Number(selectedLine.over_bet_count) + Number(selectedLine.under_bet_count)) * premium;
 
       data.push({
         outcome: outcome.toFixed(2),
@@ -184,17 +183,26 @@ export default function RiskAnalysisChart({ lineStats }) {
   };
 
   const calculateProfit = (side, outcome) => {
-    const stats = lineStats?.current_line;
-    if (!stats) return 0;
+    if (!lineStats?.current_line) return 0;
 
-    const lineValue = Number(stats.line_value) || 0;
-    const overVolume = Number(stats.total_over_volume) || 0;
-    const underVolume = Number(stats.total_under_volume) || 0;
+    const lineValue = Number(lineStats.current_line.line_value) || 0;
+    
+    // Calculate total volumes including history
+    let totalOverVolume = Number(lineStats.current_line.total_over_volume) || 0;
+    let totalUnderVolume = Number(lineStats.current_line.total_under_volume) || 0;
+
+    // Add historical volumes
+    if (lineStats.line_history) {
+      lineStats.line_history.forEach(history => {
+        totalOverVolume += Number(history.total_over_volume) || 0;
+        totalUnderVolume += Number(history.total_under_volume) || 0;
+      });
+    }
 
     if (side === "over") {
-      return outcome > lineValue ? -overVolume : overVolume;
+      return outcome > lineValue ? -totalOverVolume : totalOverVolume;
     } else {
-      return outcome < lineValue ? -underVolume : underVolume;
+      return outcome < lineValue ? -totalUnderVolume : totalUnderVolume;
     }
   };
 

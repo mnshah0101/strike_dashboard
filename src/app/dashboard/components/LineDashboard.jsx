@@ -34,6 +34,7 @@ export default function LineStatsDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          credentials: "include",
         }
       );
       const data = await res.json();
@@ -56,8 +57,9 @@ export default function LineStatsDashboard() {
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lines/${line.line_id}/stats`,
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_BEARER_TOKEN}`,
-            },
+              Authorization: `Bearer ${token}`,
+              },
+            credentials: "include",
           }
         ).then((res) => res.json())
       );
@@ -113,7 +115,7 @@ export default function LineStatsDashboard() {
                 </TableHeader>
                 <TableBody>
                   {lines && lines.map((line) => {
-                    const stats = lineStats[line.line_id]?.current_line;
+                    const stats = lineStats[line.line_id];
                     return (
                       <TableRow
                         key={line.line_id}
@@ -122,13 +124,13 @@ export default function LineStatsDashboard() {
                       >
                         <TableCell>{line.betting_event_id}</TableCell>
                         <TableCell>{line.line_value}</TableCell>
-                        <TableCell>${stats?.total_over_volume || 0}</TableCell>
-                        <TableCell>${stats?.total_under_volume || 0}</TableCell>
-                        <TableCell>{stats?.over_bet_count || 0}</TableCell>
-                        <TableCell>{stats?.under_bet_count || 0}</TableCell>
+                        <TableCell>${stats?.current_line?.total_over_volume || 0}</TableCell>
+                        <TableCell>${stats?.current_line?.total_under_volume || 0}</TableCell>
+                        <TableCell>{stats?.current_line?.over_bet_count || 0}</TableCell>
+                        <TableCell>{stats?.current_line?.under_bet_count || 0}</TableCell>
                         <TableCell>
-                          {stats?.created_at
-                            ? new Date(stats.created_at).toLocaleString()
+                          {stats?.current_line?.created_at
+                            ? new Date(stats.current_line.created_at).toLocaleString()
                             : "N/A"}
                         </TableCell>
                       </TableRow>
