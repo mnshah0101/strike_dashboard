@@ -1,4 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Strike Dashboard
+
+## Overview
+Internal risk management and operations dashboard for Strike - the world's first leveraged Daily Fantasy Sports (DFS) platform, backed by Y Combinator W24.
+
+Built by [Moksh Shah](https://github.com/mokshshh), Founding Engineer at Strike.
+
+## Features
+- Real-time risk analysis and monitoring
+- Advanced statistical modeling for line movement
+- Comprehensive CRUD operations for:
+  - Players and teams
+  - Betting lines and events
+  - User bets and positions
+- Volume imbalance detection
+- Automated risk alerts
+- Historical data analysis
+
+## Tech Stack
+- **Frontend**: Next.js 15, React 19, TailwindCSS
+- **UI Components**: Shadcn/UI
+- **State Management**: TanStack Query
+- **Data Visualization**: Recharts
+- **Authentication**: JWT with secure token management
 
 ## Getting Started
 
@@ -34,4 +57,3 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# strike_dashboard
