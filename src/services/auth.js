@@ -34,7 +34,10 @@ export const authService = {
       });
       return response.status === 200;
     } catch (error) {
-      return false;
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        return false;
+      }
+      return true;
     }
   },
 
